@@ -61,7 +61,7 @@ module.exports =
 
   parse: (checkstyleOutput, textEditor) ->
     # Regex to match the error/warning line
-    regex = /^(.*\.java):(\d+):([\w \-]+): (warning:|)(.+)/
+    regex = /^\[(INFO|WARN|ERROR)\] (.*\.java):(\d+)(:\d+)?: (.+) \[([\w  \-]+)\]$/
 
     # Split into lines
     lines = checkstyleOutput.split /\r?\n/
@@ -69,20 +69,15 @@ module.exports =
     for line in lines
 
       if line.match regex
-        [file, lineNum, colNum, typeStr, mess] = line.match(regex)[1..5]
+        [typeStr, file, lineNum, colNum, mess, module] = line.match(regex)[1..6]
 
         console.log(typeStr)
 
-        # checkstyle warning is error; info is warning
-        type = "warning"
-        if line.indexOf("warning") isnt -1
-          type = "error"
-
         messages.push
-          type: type       # Should be "error" or "warning"
+          type: "warning"
           text: mess       # The error message
           filePath: file   # Full path to file
-          range: [[lineNum - 1, 0], [lineNum - 1, 0]]
+          range: [[lineNum - 1 ,0], [lineNum - 1, 0]]
     return messages
 
   getProjectRootDir: ->
